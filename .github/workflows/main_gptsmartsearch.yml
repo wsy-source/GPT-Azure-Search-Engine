@@ -2,6 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
+
 name: Build and deploy Python app to Azure Web App - gptsmartsearch
 
 on:
@@ -9,7 +10,10 @@ on:
     branches:
       - main
   workflow_dispatch:
-
+  
+permissions:
+      id-token: write
+      contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,29 +42,22 @@ jobs:
           name: python-app
           path: |
             . 
-            !venv/
-
+            !venv/   
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      
-      - uses: Azure/login@v1
-        with:
-          creds: '{"clientId":"7051c641-c62b-40a6-b6cb-ab69f685342f","clientSecret":"lz.8Q~xBxiD81Zau5KR3OZK_8IZX12R-DZjtFbfJ","subscriptionId":"0b0d40a3-9e2b-4c48-a57b-a45b9ce3bdda","tenantId":"c023101b-be0d-4a03-991a-824f9032469a"}'
-      
-      - name: 'Az CLI login'
-        uses: azure/login@v1
-        with:
-          client-id: 7051c641-c62b-40a6-b6cb-ab69f685342f
-          tenant-id: c023101b-be0d-4a03-991a-824f9032469a
-          subscription-id: 0b0d40a3-9e2b-4c48-a57b-a45b9ce3bdda
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   
-      - name: 'Run az commands'
-        run: |
+    - name: 'Run Azure CLI commands'
+      run: |
           az account show
           az group list
-          pwd 
-        
+          pwd
   deploy:
     runs-on: ubuntu-latest
     needs: build
